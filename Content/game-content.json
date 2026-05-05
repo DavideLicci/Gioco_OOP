@@ -1,0 +1,262 @@
+{
+  "formatVersion": "1.0",
+  "config": {
+    "maxInventoryWeight": 15.0,
+    "maxTrust": 100,
+    "maxSuspicion": 100,
+    "autosaveFrequency": 10
+  },
+  "startingRoomId": "room_kitchen",
+  "rooms": {
+    "room_kitchen": {
+      "id": "room_kitchen",
+      "name": "Cucina",
+      "description": "Una cucina spaziosa con un tavolo di legno massiccio. Scaffali pieni di bottiglie e barattoli di vetro.",
+      "exits": {
+        "n": "room_hallway",
+        "e": "room_pantry"
+      },
+      "itemIds": ["item_knife", "item_note"],
+      "npcIds": ["npc_cook"],
+      "accessRequiredFlag": null
+    },
+    "room_hallway": {
+      "id": "room_hallway",
+      "name": "Corridoio",
+      "description": "Un lungo corridoio con alle pareti foto di famiglia e quadri antichi.",
+      "exits": {
+        "s": "room_kitchen",
+        "e": "room_library",
+        "w": "room_bedroom"
+      },
+      "itemIds": [],
+      "npcIds": [],
+      "accessRequiredFlag": null
+    },
+    "room_pantry": {
+      "id": "room_pantry",
+      "name": "Dispensa",
+      "description": "Una piccola stanza piena di ripiani con provviste varie.",
+      "exits": {
+        "w": "room_kitchen"
+      },
+      "itemIds": ["item_key_pantry"],
+      "npcIds": [],
+      "accessRequiredFlag": null
+    },
+    "room_library": {
+      "id": "room_library",
+      "name": "Biblioteca",
+      "description": "Una biblioteca ricca di libri antichi. Un grande tavolo di lettura al centro.",
+      "exits": {
+        "w": "room_hallway"
+      },
+      "itemIds": ["item_document_diary"],
+      "npcIds": ["npc_librarian"],
+      "accessRequiredFlag": null
+    },
+    "room_bedroom": {
+      "id": "room_bedroom",
+      "name": "Camera da Letto",
+      "description": "Una camera da letto elegante con letto a baldacchino. Un armadio di mogano lungo la parete.",
+      "exits": {
+        "e": "room_hallway"
+      },
+      "itemIds": [],
+      "npcIds": [],
+      "accessRequiredFlag": null
+    }
+  },
+  "npcs": {
+    "npc_cook": {
+      "id": "npc_cook",
+      "name": "Chef Marco",
+      "description": "Un uomo robusto con baffi grigi, sempre indaffarato in cucina.",
+      "roomId": "room_kitchen",
+      "role": "suspect",
+      "isRedHerring": false,
+      "dialogueStrategy": "friendly",
+      "dialogueOptions": [
+        {
+          "id": "opt_cook_greeting",
+          "prompt": "Ciao Marco, come stai?",
+          "response": "Ah, bene! Sto preparando il pranzo. Tutto procede normalmente.",
+          "trustDelta": 5,
+          "suspicionDelta": 0,
+          "repeatable": true,
+          "requiredFlags": [],
+          "grantsFlags": [],
+          "minSuspicion": 0,
+          "maxSuspicion": 100,
+          "grantsClueId": null
+        }
+      ]
+    },
+    "npc_librarian": {
+      "id": "npc_librarian",
+      "name": "Signora Lucia",
+      "description": "Una donna anziana con occhiali da lettura sempre appesi al collo.",
+      "roomId": "room_library",
+      "role": "witness",
+      "isRedHerring": false,
+      "dialogueStrategy": "neutral",
+      "dialogueOptions": [
+        {
+          "id": "opt_librarian_books",
+          "prompt": "Questi libri sono molto antichi?",
+          "response": "Sì, alcuni risalgono al 1800. Sono la mia collezione più preziosa.",
+          "trustDelta": 3,
+          "suspicionDelta": 0,
+          "repeatable": true,
+          "requiredFlags": [],
+          "grantsFlags": [],
+          "minSuspicion": 0,
+          "maxSuspicion": 100,
+          "grantsClueId": null
+        }
+      ]
+    }
+  },
+  "items": {
+    "item_knife": {
+      "id": "item_knife",
+      "name": "Coltello da cucina",
+      "description": "Un coltello affilato con manico di legno.",
+      "type": "normal",
+      "weight": 0.5,
+      "collectible": true,
+      "pages": 0,
+      "contains": [],
+      "openRequiredFlag": null,
+      "futureYear": null,
+      "linkedClueId": null
+    },
+    "item_note": {
+      "id": "item_note",
+      "name": "Nota sulla tavola",
+      "description": "Una nota scritta a mano su un pezzetto di carta.",
+      "type": "document",
+      "weight": 0.1,
+      "collectible": true,
+      "pages": 1,
+      "contains": [],
+      "openRequiredFlag": null,
+      "futureYear": null,
+      "linkedClueId": null
+    },
+    "item_key_pantry": {
+      "id": "item_key_pantry",
+      "name": "Chiave della dispensa",
+      "description": "Una chiave antica con un numero inciso.",
+      "type": "key",
+      "weight": 0.1,
+      "collectible": true,
+      "pages": 0,
+      "contains": [],
+      "openRequiredFlag": null,
+      "futureYear": null,
+      "linkedClueId": null
+    },
+    "item_document_diary": {
+      "id": "item_document_diary",
+      "name": "Diario",
+      "description": "Un diario rilegato in pelle con pagine ingiallite.",
+      "type": "document",
+      "weight": 0.3,
+      "collectible": true,
+      "pages": 3,
+      "contains": [],
+      "openRequiredFlag": null,
+      "futureYear": null,
+      "linkedClueId": null
+    }
+  },
+  "clues": {
+    "clue_knife": {
+      "id": "clue_knife",
+      "title": "Il coltello",
+      "description": "Un coltello affilato trovato in cucina. Potrebbe essere significativo.",
+      "quality": "low",
+      "confidence": 30
+    },
+    "clue_note": {
+      "id": "clue_note",
+      "title": "La nota misteriosa",
+      "description": "Una nota scritta nella cucina. Contiene informazioni importanti.",
+      "quality": "medium",
+      "confidence": 60
+    }
+  },
+  "deductions": [
+    {
+      "id": "deduction_1",
+      "title": "Connessione tra la nota e il diario",
+      "description": "Hai collegato la nota e il diario per una comprensione più profonda.",
+      "requiredClueIds": ["clue_note", "clue_knife"],
+      "minEvidenceScore": 80,
+      "resultingClueId": "clue_mystery",
+      "grantsFlags": ["understood_mystery"]
+    }
+  ],
+  "achievements": [
+    {
+      "id": "ach_first_clue",
+      "title": "Prima Traccia",
+      "description": "Hai trovato il tuo primo indizio.",
+      "hidden": false,
+      "conditions": [
+        {
+          "type": "clue_count_at_least",
+          "clueId": null,
+          "number": 1,
+          "maxTurns": null
+        }
+      ]
+    },
+    {
+      "id": "ach_speedrunner",
+      "title": "Il Velocista",
+      "description": "Hai completato il primo livello in meno di 20 turni!",
+      "hidden": false,
+      "conditions": [
+        {
+          "type": "level_complete_at_turn",
+          "clueId": null,
+          "number": 1,
+          "maxTurns": 20
+        }
+      ]
+    }
+  ],
+  "levels": [
+    {
+      "levelNumber": 1,
+      "title": "L'Inizio",
+      "description": "Esplora la casa e raccogli i primi indizi.",
+      "completionConditions": [
+        {
+          "type": "clue_found",
+          "flagName": "clue_note",
+          "minimumValue": null
+        },
+        {
+          "type": "visited_room",
+          "flagName": "visited_library",
+          "minimumValue": null
+        }
+      ]
+    },
+    {
+      "levelNumber": 2,
+      "title": "Approfondimento",
+      "description": "Approfondisci le connessioni tra gli indizi.",
+      "completionConditions": [
+        {
+          "type": "flag_true",
+          "flagName": "understood_mystery",
+          "minimumValue": null
+        }
+      ]
+    }
+  ]
+}
