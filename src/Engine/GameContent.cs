@@ -34,6 +34,9 @@ public class GameContent
     // Definizioni di livelli
     public List<LevelDefinition> Levels { get; set; } = new();
     
+    // Alias di comando configurabili (DADDA)
+    public List<CommandAliasDefinition> CommandAliases { get; set; } = new();
+    
     // Stanza iniziale
     public string StartingRoomId { get; set; } = string.Empty;
 }

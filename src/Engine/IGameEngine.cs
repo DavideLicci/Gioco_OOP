@@ -30,7 +30,15 @@ public interface IGameEngine
 /// </summary>
 public interface ICommandParser
 {
+    /// <summary>
+    /// Esegue il parsing di un comando di input.
+    /// </summary>
     ParsedCommand Parse(string input);
+    
+    /// <summary>
+    /// Imposta gli alias dinamici dal contenuto del gioco.
+    /// </summary>
+    void SetDynamicAliases(Dictionary<string, string> aliases);
 }
 
 /// <summary>

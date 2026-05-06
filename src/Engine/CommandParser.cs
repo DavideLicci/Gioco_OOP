@@ -3,12 +3,27 @@ namespace OltreIlTempo.Engine;
 using OltreIlTempo.Domain;
 
 /// <summary>
-/// Implementazione del CommandParser.
-/// DADDA: implementa il parsing dei comandi dell'utente.
-/// Supporta alias, normalizzazione, e suggerimenti di typo.
+/// Motore di parsing dei comandi per il gioco.
 /// </summary>
+/// <remarks>
+/// Questa classe implementa il Command Pattern per il parsing degli input dell'utente.
+/// Supporta:
+/// - Alias multipli per ogni comando (es. "n", "nord" → "north")
+/// - Suggerimenti automatici per typo usando distanza di Levenshtein
+/// - Alias dinamici configurabili da JSON
+/// 
+/// Utilizzo tipico:
+/// <code>
+/// var parser = new CommandParser();
+/// parser.SetDynamicAliases(aliases); // Opzionale
+/// var parsed = parser.Parse("raccogli coltello");
+/// </code>
+/// </remarks>
 public class CommandParser : ICommandParser
 {
+    // Alias dinamici dal JSON (ha priorità sugli alias hardcoded)
+    private Dictionary<string, string> _dynamicAliases = new();
+    
     // Alias dei comandi (es. "n" -> "north")
     private static readonly Dictionary<string, string> CommandAliases = new()
     {
@@ -58,7 +73,7 @@ public class CommandParser : ICommandParser
         { "carica", "load" },
         { "aiuto", "help" },
         { "?", "help" },
-        { "esci", "quit" },
+{ "esci", "quit" },
         { "quit", "quit" },
         { "exit", "exit" }
     };
@@ -116,12 +131,28 @@ public class CommandParser : ICommandParser
     /// </summary>
     private string NormalizeCommand(string command)
     {
-        if (CommandAliases.TryGetValue(command, out var normalized))
+        // Prima controlla gli alias dinamici (hanno priorità)
+        if (_dynamicAliases.TryGetValue(command, out var normalized))
         {
             return normalized;
         }
         
+        // Poi controlla gli alias hardcoded
+        if (CommandAliases.TryGetValue(command, out var hardcoded))
+        {
+            return hardcoded;
+        }
+        
         return command;
+    }
+    
+    /// <summary>
+    /// Imposta gli alias dinamici dal contenuto del gioco.
+    /// DADDA: questo permette di configurare alias via JSON.
+    /// </summary>
+    public void SetDynamicAliases(Dictionary<string, string> aliases)
+    {
+        _dynamicAliases = aliases ?? new Dictionary<string, string>();
     }
     
     /// <summary>

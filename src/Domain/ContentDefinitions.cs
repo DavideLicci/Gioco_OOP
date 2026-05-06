@@ -129,3 +129,17 @@ public class LevelCondition
     public string? FlagName { get; set; }
     public int? MinimumValue { get; set; }
 }
+
+/// <summary>
+/// Definizione di un alias di comando.
+/// DADDA: permette di configurare alias dinamici via JSON.
+/// Es: "n" -> "north", "raccogli" -> "take"
+/// </summary>
+public class CommandAliasDefinition
+{
+    /// <summary>Alias shortened command (e.g., "n", "inv")</summary>
+    public string Alias { get; set; } = string.Empty;
+    
+    /// <summary>Full command that the alias resolves to (e.g., "north", "inventory")</summary>
+    public string ResolvedCommand { get; set; } = string.Empty;
+}
