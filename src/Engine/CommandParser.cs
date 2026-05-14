@@ -69,11 +69,12 @@ public class CommandParser : ICommandParser
         { "trofei", "achievements" },
         { "missione", "quest" },
         { "livello", "quest" },
+        { "mappa", "map" },
         { "salva", "save" },
         { "carica", "load" },
         { "aiuto", "help" },
         { "?", "help" },
-{ "esci", "quit" },
+        { "esci", "quit" },
         { "quit", "quit" },
         { "exit", "exit" }
     };
@@ -89,7 +90,7 @@ public class CommandParser : ICommandParser
         "choose",
         
         // Sistema
-        "inventory", "status", "board", "deduce", "achievements", "quest", "save", "load", "help", "quit", "exit"
+        "inventory", "status", "board", "deduce", "achievements", "quest", "map", "save", "load", "help", "quit", "exit"
     };
     
     public ParsedCommand Parse(string input)
@@ -131,19 +132,8 @@ public class CommandParser : ICommandParser
     /// </summary>
     private string NormalizeCommand(string command)
     {
-        // Prima controlla gli alias dinamici (hanno priorità)
-        if (_dynamicAliases.TryGetValue(command, out var normalized))
-        {
-            return normalized;
-        }
-        
-        // Poi controlla gli alias hardcoded
-        if (CommandAliases.TryGetValue(command, out var hardcoded))
-        {
-            return hardcoded;
-        }
-        
-        return command;
+        if (_dynamicAliases.TryGetValue(command, out var normalized)) return normalized;
+        return CommandAliases.TryGetValue(command, out var hardcoded) ? hardcoded : command;
     }
     
     /// <summary>
@@ -188,28 +178,24 @@ public class CommandParser : ICommandParser
     /// </summary>
     private int LevenshteinDistance(string s1, string s2)
     {
-        int len1 = s1.Length;
-        int len2 = s2.Length;
-        int[,] d = new int[len1 + 1, len2 + 1];
-        
-        for (int i = 0; i <= len1; i++)
-            d[i, 0] = i;
-        
-        for (int j = 0; j <= len2; j++)
-            d[0, j] = j;
-        
-        for (int i = 1; i <= len1; i++)
+        if (string.IsNullOrEmpty(s1)) return s2?.Length ?? 0;
+        if (string.IsNullOrEmpty(s2)) return s1.Length;
+
+        int n = s1.Length;
+        int m = s2.Length;
+        int[,] d = new int[n + 1, m + 1];
+
+        for (int i = 0; i <= n; d[i, 0] = i++) ;
+        for (int j = 0; j <= m; d[0, j] = j++) ;
+
+        for (int i = 1; i <= n; i++)
         {
-            for (int j = 1; j <= len2; j++)
+            for (int j = 1; j <= m; j++)
             {
-                int cost = (s1[i - 1] == s2[j - 1]) ? 0 : 1;
-                d[i, j] = Math.Min(
-                    Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
-                    d[i - 1, j - 1] + cost
-                );
+                int cost = (s2[j - 1] == s1[i - 1]) ? 0 : 1;
+                d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
             }
         }
-        
-        return d[len1, len2];
+        return d[n, m];
     }
 }
