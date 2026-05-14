@@ -1,5 +1,7 @@
 namespace OltreIlTempo.Domain;
 
+using OltreIlTempo.Engine;
+
 /// <summary>
 /// Interfaccia per il sistema di inventario.
 /// Alice implementerà questa interfaccia.

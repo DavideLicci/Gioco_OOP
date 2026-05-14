@@ -1,5 +1,7 @@
 namespace OltreIlTempo.Domain;
 
+using OltreIlTempo.Engine;
+
 /// <summary>
 /// Implementazione del sistema di inventario.
 /// ALICE: gestisce gli oggetti e l'inventario del giocatore.

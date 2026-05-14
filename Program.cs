@@ -27,7 +27,7 @@ gameEngine.RegisterServices(
 );
 
 // ==================== INTRODUZIONE NARRATIVA ====================
-Console.Clear();
+ClearScreen();
 
 // ASCII Art del titolo
 Console.ForegroundColor = ConsoleColor.Cyan;
@@ -92,7 +92,7 @@ Console.ResetColor();
 Console.ReadLine();
 
 // ==================== TUTORIAL ====================
-Console.Clear();
+ClearScreen();
 Console.ForegroundColor = ConsoleColor.Yellow;
 Console.WriteLine();
 Console.WriteLine("  Vuoi seguire un breve tutorial? (s/n)");
@@ -109,7 +109,7 @@ bool runTutorial = !string.IsNullOrEmpty(tutorialChoice) &&
 
 if (runTutorial)
 {
-    Console.Clear();
+    ClearScreen();
     var tutorialStart = gameEngine.StartTutorial();
     
     foreach (var line in tutorialStart)
@@ -218,8 +218,15 @@ void RenderColoredLine(string text)
         Console.WriteLine();
         return;
     }
+
+    if (text.Contains('\u001b'))
+    {
+        Console.WriteLine(text);
+        Console.ResetColor();
+        return;
+    }
     
-    string trimmed = text.TrimStart();
+    string trimmed = StripAnsi(text).TrimStart();
     
     // Bordi e cornici
     if (trimmed.StartsWith("┌") || trimmed.StartsWith("└") || 
@@ -302,8 +309,28 @@ void RenderColoredBlock(string text)
     }
 }
 
+string StripAnsi(string text) =>
+    System.Text.RegularExpressions.Regex.Replace(text, @"\x1B\[[0-9;]*m", "");
+
+void ClearScreen()
+{
+    if (Console.IsOutputRedirected)
+    {
+        return;
+    }
+
+    try
+    {
+        Console.Clear();
+    }
+    catch (IOException)
+    {
+        // Alcuni host non espongono un buffer console, anche se l'app è interattiva.
+    }
+}
+
 // ==================== LOOP PRINCIPALE ====================
-Console.Clear();
+ClearScreen();
 
 Console.ForegroundColor = ConsoleColor.Cyan;
 Console.WriteLine("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");

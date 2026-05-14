@@ -251,7 +251,7 @@ public partial class GameEngine
     {
         var result = new CommandResult();
         
-        result.AddLine(AsciiArtProvider.GetVillaMap());
+        result.AddLine(AsciiArtProvider.GetVillaMap(_state.CurrentRoomId));
         
         // Mostra posizione attuale
         if (_content.Rooms.TryGetValue(_state.CurrentRoomId, out var room))

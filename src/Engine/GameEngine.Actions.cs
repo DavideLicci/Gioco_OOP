@@ -155,15 +155,9 @@ public partial class GameEngine
             result.AddLine(npcArt);
         }
         
-        result.AddLine(AsciiArtProvider.GetThinSeparator());
-        result.AddLine($"  💬 {npc2.Name}:", OutputLineType.Success);
-        result.AddLine(AsciiArtProvider.GetThinSeparator());
-        result.AddLine("  Scegli un'opzione di dialogo:");
-        for (int i = 0; i < options.Count; i++)
-        {
-            result.AddLine($"  [{i + 1}] {options[i].Prompt}");
-        }
-        result.AddLine("\n(Usa 'scegli [numero]' per rispondere)", OutputLineType.Subtle);
+        result.AddLine(AsciiArtProvider.GetDialogueMenu(
+            npc2.Name,
+            options.Select(option => option.Prompt)));
         
         return result;
     }
@@ -201,8 +195,10 @@ public partial class GameEngine
         }
         
         // Mostra la risposta
-        result.AddLine($"Tu: \"{selectedOption.Prompt}\"");
-        result.AddLine($"{npc.Name}: \"{selectedOption.Response}\"", OutputLineType.Success);
+        result.AddLine(AsciiArtProvider.GetDialogueExchange(
+            selectedOption.Prompt,
+            npc.Name,
+            selectedOption.Response));
         
         // Applica gli effetti tramite il DialogueSystem
         if (_dialogueSystem != null)

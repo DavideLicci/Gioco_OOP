@@ -51,7 +51,7 @@ public class DeductionService : IDeductionService
         
         bool anyUnlocked = false;
         
-        foreach (var deduction in content.Deductions)
+        foreach (var deduction in content.Deductions.Values)
         {
             if (state.ResolvedDeductions.ContainsKey(deduction.Id))
             {

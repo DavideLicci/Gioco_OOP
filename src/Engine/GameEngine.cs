@@ -30,6 +30,11 @@ public partial class GameEngine : IGameEngine
     
     // Mappe dei comandi (Command Pattern)
     private Dictionary<string, Func<List<string>, CommandResult>> _commandDispatcher = new();
+
+    public GameEngine(GameContent content, GameConfig config)
+        : this(content, config, new CommandParser(), new ConditionEvaluator())
+    {
+    }
     
     public GameEngine(
         GameContent content, 

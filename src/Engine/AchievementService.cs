@@ -24,7 +24,7 @@ public class AchievementService : IAchievementService
         
         var unlocks = new List<string>();
         
-        foreach (var achievement in content.Achievements)
+        foreach (var achievement in content.Achievements.Values)
         {
             if (state.UnlockedAchievements.ContainsKey(achievement.Id))
             {
@@ -47,7 +47,7 @@ public class AchievementService : IAchievementService
         
         var description = "== Trofei ==\n";
         
-        foreach (var achievement in content.Achievements)
+        foreach (var achievement in content.Achievements.Values)
         {
             var isUnlocked = state.UnlockedAchievements.ContainsKey(achievement.Id);
             
