@@ -1,6 +1,9 @@
+using OltreIlTempo;
 using OltreIlTempo.Content;
 using OltreIlTempo.Domain;
 using OltreIlTempo.Engine;
+
+ConsoleSetup.Initialize();
 
 // Carica il contenuto
 var contentLoader = new ContentLoader();
@@ -30,9 +33,7 @@ gameEngine.RegisterServices(
 ClearScreen();
 
 // ASCII Art del titolo
-Console.ForegroundColor = ConsoleColor.Cyan;
 Console.WriteLine(AsciiArtProvider.GetSplashScreen());
-Console.ResetColor();
 
 Console.ForegroundColor = ConsoleColor.DarkGray;
 Console.WriteLine("    Un'avventura investigativa interattiva.");
@@ -41,9 +42,7 @@ Console.ResetColor();
 Console.WriteLine();
 
 // Mostra l'esterno della villa
-Console.ForegroundColor = ConsoleColor.DarkYellow;
 Console.WriteLine(AsciiArtProvider.GetVillaExterior());
-Console.ResetColor();
 Console.WriteLine();
 
 // Mostra l'introduzione narrativa con effetto "typewriter"

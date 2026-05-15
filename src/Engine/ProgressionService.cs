@@ -43,7 +43,7 @@ public class ProgressionService : IProgressionService
         return false;
     }
     
-    public LevelDefinition GetCurrentLevel(int levelNumber, GameContent content)
+    public LevelDefinition? GetCurrentLevel(int levelNumber, GameContent content)
     {
         // TODO: Restituisci il livello corrispondente
         return content.Levels.FirstOrDefault(l => l.LevelNumber == levelNumber);

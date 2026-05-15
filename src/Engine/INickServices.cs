@@ -50,5 +50,5 @@ public interface IProgressionService
     /// <summary>
     /// Ottiene la definizione del livello corrente.
     /// </summary>
-    LevelDefinition GetCurrentLevel(int levelNumber, GameContent content);
+    LevelDefinition? GetCurrentLevel(int levelNumber, GameContent content);
 }
