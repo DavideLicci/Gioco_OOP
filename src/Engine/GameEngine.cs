@@ -9,6 +9,22 @@ using OltreIlTempo.Domain;
 /// </summary>
 public partial class GameEngine : IGameEngine
 {
+    private static readonly HashSet<string> NonTurnCommands = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "help",
+        "status",
+        "inventory",
+        "look",
+        "board",
+        "achievements",
+        "quest",
+        "map",
+        "save",
+        "load",
+        "quit",
+        "exit"
+    };
+
     private GameState _state = new();
     private GameContent _content = new();
     private GameConfig _config = new();
@@ -47,6 +63,8 @@ public partial class GameEngine : IGameEngine
         _parser = parser;
         _evaluator = evaluator;
         _state = InitializeGameState(content, config);
+
+        ApplyDynamicAliases(content);
         
         // Registra i comandi disponibili
         RegisterCommands();
@@ -147,6 +165,11 @@ public partial class GameEngine : IGameEngine
         
         try
         {
+            if (ShouldClearActiveDialogue(parsed.Verb))
+            {
+                ClearActiveDialogue();
+            }
+
             // Dispatch al comando appropriato
             if (_commandDispatcher.TryGetValue(parsed.Verb, out var commandHandler))
             {
@@ -158,7 +181,7 @@ public partial class GameEngine : IGameEngine
             }
             
             // Finalizza il turno (incrementa turno, progressione, achievement)
-            if (result.IsValid && parsed.Verb != "help" && parsed.Verb != "status" && parsed.Verb != "inventory")
+            if (ShouldFinalizeTurn(parsed.Verb, result))
             {
                 FinalizeTurn(result);
             }
@@ -180,7 +203,9 @@ public partial class GameEngine : IGameEngine
             return "Sei in una stanza sconosciuta.";
         }
         
-        bool alreadyVisited = _state.UnlockedRooms.GetValueOrDefault(_state.CurrentRoomId, false);
+        bool alreadyVisited = HasRoomBeenDescribed(_state, _state.CurrentRoomId);
+        MarkRoomVisited(_state, _state.CurrentRoomId);
+        MarkRoomDescribed(_state, _state.CurrentRoomId);
         
         var sb = new System.Text.StringBuilder();
         
@@ -303,7 +328,101 @@ public partial class GameEngine : IGameEngine
         {
             state.UnlockedRooms[room.Key] = string.IsNullOrEmpty(room.Value.AccessRequiredFlag);
         }
+
+        MarkRoomVisited(state, content.StartingRoomId);
         
         return state;
+    }
+
+    private bool ShouldFinalizeTurn(string verb, CommandResult result)
+    {
+        return result.IsValid && !NonTurnCommands.Contains(verb);
+    }
+
+    private bool ShouldClearActiveDialogue(string verb)
+    {
+        return _activeDialogueNpcId != null &&
+               !string.Equals(verb, "choose", StringComparison.OrdinalIgnoreCase) &&
+               !string.Equals(verb, "talk", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void ClearActiveDialogue()
+    {
+        _activeDialogueNpcId = null;
+        _activeDialogueOptions = null;
+    }
+
+    private void ApplyDynamicAliases(GameContent content)
+    {
+        if (content.CommandAliases.Count == 0)
+        {
+            return;
+        }
+
+        var aliases = content.CommandAliases
+            .Where(alias => !string.IsNullOrWhiteSpace(alias.Alias) &&
+                            !string.IsNullOrWhiteSpace(alias.ResolvedCommand))
+            .ToDictionary(
+                alias => alias.Alias,
+                alias => alias.ResolvedCommand,
+                StringComparer.OrdinalIgnoreCase);
+
+        _parser.SetDynamicAliases(aliases);
+    }
+
+    private static void MarkRoomVisited(GameState state, string roomId)
+    {
+        MarkRoomFlag(state, "visited", roomId);
+    }
+
+    private static void MarkRoomDescribed(GameState state, string roomId)
+    {
+        MarkRoomFlag(state, "described", roomId);
+    }
+
+    private static bool HasRoomBeenDescribed(GameState state, string roomId)
+    {
+        return HasRoomFlag(state, "described", roomId);
+    }
+
+    private static void MarkRoomFlag(GameState state, string prefix, string roomId)
+    {
+        if (string.IsNullOrWhiteSpace(roomId))
+        {
+            return;
+        }
+
+        state.Flags[$"{prefix}_{roomId}"] = true;
+
+        var shortRoomId = GetShortRoomId(roomId);
+        if (!string.Equals(shortRoomId, roomId, StringComparison.OrdinalIgnoreCase))
+        {
+            state.Flags[$"{prefix}_{shortRoomId}"] = true;
+        }
+    }
+
+    private static bool HasRoomFlag(GameState state, string prefix, string roomId)
+    {
+        if (string.IsNullOrWhiteSpace(roomId))
+        {
+            return false;
+        }
+
+        if (state.Flags.GetValueOrDefault($"{prefix}_{roomId}", false))
+        {
+            return true;
+        }
+
+        var shortRoomId = GetShortRoomId(roomId);
+        return !string.Equals(shortRoomId, roomId, StringComparison.OrdinalIgnoreCase) &&
+               state.Flags.GetValueOrDefault($"{prefix}_{shortRoomId}", false);
+    }
+
+    private static string GetShortRoomId(string roomId)
+    {
+        const string roomPrefix = "room_";
+        return roomId.StartsWith(roomPrefix, StringComparison.OrdinalIgnoreCase)
+            ? roomId[roomPrefix.Length..]
+            : roomId;
     }
 }

@@ -188,7 +188,7 @@ public class ConditionEvaluator : IConditionEvaluator
         }
 
         string roomId = parts[1].Trim();
-        return state.UnlockedRooms.GetValueOrDefault(roomId, false);
+        return HasVisitedRoom(state, roomId);
     }
 
     private bool EvaluateNpcTrustRange(string[] parts, GameState state)
@@ -211,5 +211,38 @@ public class ConditionEvaluator : IConditionEvaluator
 
         int currentTrust = state.NpcTrust.GetValueOrDefault(npcId, 0);
         return currentTrust >= minTrust && currentTrust <= maxTrust;
+    }
+
+    private static bool HasVisitedRoom(GameState state, string roomId)
+    {
+        if (string.IsNullOrWhiteSpace(roomId))
+        {
+            return false;
+        }
+
+        if (state.Flags.GetValueOrDefault(roomId, false))
+        {
+            return true;
+        }
+
+        if (state.Flags.GetValueOrDefault($"visited_{roomId}", false))
+        {
+            return true;
+        }
+
+        const string visitedPrefix = "visited_";
+        if (roomId.StartsWith(visitedPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        const string roomPrefix = "room_";
+        if (roomId.StartsWith(roomPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            var shortRoomId = roomId[roomPrefix.Length..];
+            return state.Flags.GetValueOrDefault($"visited_{shortRoomId}", false);
+        }
+
+        return state.Flags.GetValueOrDefault($"visited_room_{roomId}", false);
     }
 }

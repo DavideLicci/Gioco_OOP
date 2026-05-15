@@ -139,8 +139,7 @@ public partial class GameEngine
         if (options.Count == 0)
         {
             result.AddLine($"{npc2.Name}: (Non ha nient'altro da dire per ora.)", OutputLineType.Subtle);
-            _activeDialogueNpcId = null;
-            _activeDialogueOptions = null;
+            ClearActiveDialogue();
             return result;
         }
         
@@ -189,8 +188,7 @@ public partial class GameEngine
         if (!_content.Npcs.TryGetValue(_activeDialogueNpcId, out var npc))
         {
             result.AddError("NPC del dialogo non trovato.");
-            _activeDialogueNpcId = null;
-            _activeDialogueOptions = null;
+            ClearActiveDialogue();
             return result;
         }
         
@@ -226,8 +224,7 @@ public partial class GameEngine
         }
         
         // Resetta lo stato del dialogo
-        _activeDialogueNpcId = null;
-        _activeDialogueOptions = null;
+        ClearActiveDialogue();
         
         return result;
     }

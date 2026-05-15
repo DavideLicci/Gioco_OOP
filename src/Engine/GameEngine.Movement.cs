@@ -41,6 +41,7 @@ public partial class GameEngine
         // Movimento riuscito
         _state.CurrentRoomId = nextRoomId;
         _state.UnlockedRooms[nextRoomId] = true;
+        MarkRoomVisited(_state, nextRoomId);
         
         // Mostra la descrizione della nuova stanza
         result.AddLine($"Vai verso {GetDirectionFullName(direction)}.", OutputLineType.Success);

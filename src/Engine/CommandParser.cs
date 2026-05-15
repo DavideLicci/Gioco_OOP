@@ -23,6 +23,46 @@ public class CommandParser : ICommandParser
 {
     // Alias dinamici dal JSON (ha priorità sugli alias hardcoded)
     private Dictionary<string, string> _dynamicAliases = new();
+
+    private static readonly HashSet<string> MovementCommandWords = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "vai",
+        "va",
+        "andare",
+        "cammina",
+        "muoviti",
+        "spostati"
+    };
+
+    private static readonly HashSet<string> FillerWords = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "a",
+        "ad",
+        "al",
+        "allo",
+        "alla",
+        "ai",
+        "agli",
+        "alle",
+        "con",
+        "il",
+        "lo",
+        "la",
+        "i",
+        "gli",
+        "le",
+        "un",
+        "uno",
+        "una",
+        "verso",
+        "in",
+        "nel",
+        "nello",
+        "nella",
+        "nei",
+        "negli",
+        "nelle"
+    };
     
     // Alias dei comandi (es. "n" -> "north")
     private static readonly Dictionary<string, string> CommandAliases = new()
@@ -95,7 +135,11 @@ public class CommandParser : ICommandParser
     
     public ParsedCommand Parse(string input)
     {
-        var parts = input.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        var parts = input.Trim()
+            .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(CleanToken)
+            .Where(part => !string.IsNullOrWhiteSpace(part))
+            .ToArray();
         
         if (parts.Length == 0)
         {
@@ -103,8 +147,33 @@ public class CommandParser : ICommandParser
         }
         
         // Normalizza e converti alias
-        string verb = parts[0].ToLower();
-        verb = NormalizeCommand(verb);
+        string rawVerb = parts[0].ToLowerInvariant();
+        List<string> args;
+        string verb;
+
+        if (ShouldParseAsNaturalMovement(rawVerb))
+        {
+            args = CleanArguments(parts.Skip(1));
+
+            if (args.Count == 0)
+            {
+                return new ParsedCommand
+                {
+                    IsValid = false,
+                    Verb = rawVerb,
+                    Args = new(),
+                    Suggestion = "nord"
+                };
+            }
+
+            verb = NormalizeCommand(args[0].ToLowerInvariant());
+            args = args.Skip(1).ToList();
+        }
+        else
+        {
+            verb = NormalizeCommand(rawVerb);
+            args = CleanArguments(parts.Skip(1));
+        }
         
         // Se il comando non è riconosciuto, suggerisci il più simile
         if (!KnownVerbs.Contains(verb))
@@ -114,7 +183,7 @@ public class CommandParser : ICommandParser
             {
                 IsValid = false,
                 Verb = verb,
-                Args = parts.Length > 1 ? parts[1..].ToList() : new(),
+                Args = args,
                 Suggestion = string.IsNullOrEmpty(suggestion) ? null : suggestion
             };
         }
@@ -123,7 +192,7 @@ public class CommandParser : ICommandParser
         {
             IsValid = true,
             Verb = verb,
-            Args = parts.Length > 1 ? parts[1..].ToList() : new()
+            Args = args
         };
     }
     
@@ -132,8 +201,22 @@ public class CommandParser : ICommandParser
     /// </summary>
     private string NormalizeCommand(string command)
     {
-        if (_dynamicAliases.TryGetValue(command, out var normalized)) return normalized;
+        if (_dynamicAliases.TryGetValue(command, out var normalized))
+        {
+            return CommandAliases.TryGetValue(normalized, out var normalizedAlias)
+                ? normalizedAlias
+                : normalized;
+        }
+
         return CommandAliases.TryGetValue(command, out var hardcoded) ? hardcoded : command;
+    }
+
+    private bool ShouldParseAsNaturalMovement(string rawVerb)
+    {
+        return MovementCommandWords.Contains(rawVerb) &&
+               !_dynamicAliases.ContainsKey(rawVerb) &&
+               !CommandAliases.ContainsKey(rawVerb) &&
+               !KnownVerbs.Contains(rawVerb);
     }
     
     /// <summary>
@@ -142,7 +225,13 @@ public class CommandParser : ICommandParser
     /// </summary>
     public void SetDynamicAliases(Dictionary<string, string> aliases)
     {
-        _dynamicAliases = aliases ?? new Dictionary<string, string>();
+        _dynamicAliases = aliases?
+            .Where(alias => !string.IsNullOrWhiteSpace(alias.Key) && !string.IsNullOrWhiteSpace(alias.Value))
+            .ToDictionary(
+                alias => alias.Key.Trim().ToLowerInvariant(),
+                alias => alias.Value.Trim().ToLowerInvariant(),
+                StringComparer.OrdinalIgnoreCase)
+            ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
     }
     
     /// <summary>
@@ -153,7 +242,12 @@ public class CommandParser : ICommandParser
         int minDistance = int.MaxValue;
         string closest = string.Empty;
         
-        foreach (var verb in KnownVerbs)
+        var candidates = KnownVerbs
+            .Concat(CommandAliases.Keys)
+            .Concat(_dynamicAliases.Keys)
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+        
+        foreach (var verb in candidates)
         {
             int distance = LevenshteinDistance(input, verb);
             
@@ -171,6 +265,51 @@ public class CommandParser : ICommandParser
         }
         
         return closest;
+    }
+
+    private static string CleanToken(string token)
+    {
+        var cleaned = token.Trim().Trim('.', ',', ';', ':', '!', '"');
+
+        if (cleaned.Length > 1)
+        {
+            cleaned = cleaned.Trim('?');
+        }
+
+        if (cleaned.StartsWith("l'", StringComparison.OrdinalIgnoreCase))
+        {
+            cleaned = cleaned[2..];
+        }
+
+        return cleaned;
+    }
+
+    private static List<string> CleanArguments(IEnumerable<string> args)
+    {
+        var cleaned = new List<string>();
+        bool skipFillers = true;
+
+        foreach (var arg in args)
+        {
+            var normalized = arg.ToLowerInvariant();
+
+            if (normalized == "su")
+            {
+                cleaned.Add(normalized);
+                skipFillers = true;
+                continue;
+            }
+
+            if (skipFillers && FillerWords.Contains(normalized))
+            {
+                continue;
+            }
+
+            cleaned.Add(arg);
+            skipFillers = false;
+        }
+
+        return cleaned;
     }
     
     /// <summary>
